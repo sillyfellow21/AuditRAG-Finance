@@ -80,9 +80,11 @@ Top-level modules:
 
 ## Quick Start
 ### Prerequisites
-- Python 3.11+
+- Python 3.11 (recommended for deployment) or 3.12
 - pip
 - (Optional) Tesseract binary for OCR-heavy image workflows
+
+For Streamlit Community Cloud deployments, this repo includes `runtime.txt` to pin Python to 3.11.
 
 ### Install
 ```bash
