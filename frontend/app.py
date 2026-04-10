@@ -5,7 +5,11 @@ from typing import Any, Dict, List
 import requests
 import streamlit as st
 
-from frontend.client import BackendClient
+try:
+    # Streamlit Cloud can run this script with `frontend/` as the working directory.
+    from frontend.client import BackendClient
+except ModuleNotFoundError:  # pragma: no cover - fallback path for cloud/runtime execution context
+    from client import BackendClient
 
 st.set_page_config(
     page_title="AuditRAG-Finance",
