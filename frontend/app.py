@@ -8,7 +8,7 @@ import streamlit as st
 from frontend.client import BackendClient
 
 st.set_page_config(
-    page_title="Financial Multimodal Assistant",
+    page_title="AuditRAG-Finance",
     page_icon="📄",
     layout="wide",
 )
@@ -27,8 +27,11 @@ def _init_state() -> None:
 
 _init_state()
 
-st.title("Financial Multimodal AI Assistant")
-st.caption("Upload a receipt/invoice image or PDF, then ask grounded questions with evidence.")
+st.title("AuditRAG-Finance")
+st.caption(
+    "AI assistant for financial document understanding, "
+    "charge explanation, and anomaly detection."
+)
 
 with st.sidebar:
     st.header("Connection")
