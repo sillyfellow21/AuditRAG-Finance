@@ -1,0 +1,17 @@
+[
+  {
+    "document_id": "REPLACE_WITH_REAL_DOC_ID",
+    "question": "Why was this charge deducted?",
+    "ground_truth": "The deduction is due to listed line items and tax shown on the document."
+  },
+  {
+    "document_id": "REPLACE_WITH_REAL_DOC_ID",
+    "question": "What is the total amount and tax?",
+    "ground_truth": "The answer should state total and tax values exactly as shown in the document."
+  },
+  {
+    "document_id": "REPLACE_WITH_REAL_DOC_ID",
+    "question": "Who is the vendor and on what date was this issued?",
+    "ground_truth": "The answer should report vendor and date, or explicitly mention if missing."
+  }
+]
