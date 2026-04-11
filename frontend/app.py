@@ -1,14 +1,22 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any, Dict, List
 
 import requests
 import streamlit as st
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 try:
     # Streamlit Cloud can run this script with `frontend/` as the working directory.
     from frontend.client import BackendClient, InProcessBackendClient
-except ModuleNotFoundError:  # pragma: no cover - fallback path for cloud/runtime execution context
+except ModuleNotFoundError as exc:  # pragma: no cover - runtime path fallback
+    if exc.name not in {"frontend", "frontend.client"}:
+        raise
     from client import BackendClient, InProcessBackendClient
 
 st.set_page_config(
