@@ -7,9 +7,9 @@ import streamlit as st
 
 try:
     # Streamlit Cloud can run this script with `frontend/` as the working directory.
-    from frontend.client import BackendClient
+    from frontend.client import BackendClient, InProcessBackendClient
 except ModuleNotFoundError:  # pragma: no cover - fallback path for cloud/runtime execution context
-    from client import BackendClient
+    from client import BackendClient, InProcessBackendClient
 
 st.set_page_config(
     page_title="AuditRAG-Finance",
@@ -19,6 +19,8 @@ st.set_page_config(
 
 
 def _init_state() -> None:
+    if "runtime_mode" not in st.session_state:
+        st.session_state.runtime_mode = "Embedded (single app)"
     if "backend_url" not in st.session_state:
         st.session_state.backend_url = "http://localhost:8000"
     if "document" not in st.session_state:
@@ -31,6 +33,11 @@ def _init_state() -> None:
 
 _init_state()
 
+
+@st.cache_resource
+def _get_embedded_client() -> InProcessBackendClient:
+    return InProcessBackendClient()
+
 st.title("AuditRAG-Finance")
 st.caption(
     "AI assistant for financial document understanding, "
@@ -38,15 +45,26 @@ st.caption(
 )
 
 with st.sidebar:
-    st.header("Connection")
-    backend_url = st.text_input("Backend URL", value=st.session_state.backend_url)
-    st.session_state.backend_url = backend_url
+    st.header("Runtime")
+    mode = st.radio(
+        "Execution Mode",
+        ["Embedded (single app)", "External FastAPI backend"],
+        index=0 if st.session_state.runtime_mode == "Embedded (single app)" else 1,
+    )
+    st.session_state.runtime_mode = mode
 
-    client = BackendClient(base_url=backend_url)
-    if st.button("Check Backend Health"):
+    if mode == "External FastAPI backend":
+        backend_url = st.text_input("Backend URL", value=st.session_state.backend_url)
+        st.session_state.backend_url = backend_url
+        client = BackendClient(base_url=backend_url)
+    else:
+        st.caption("Backend is merged into Streamlit for single-service deployment.")
+        client = _get_embedded_client()
+
+    if st.button("Check Service Health"):
         try:
             status = client.health()
-            st.success(f"Backend is healthy: {status}")
+            st.success(f"Service is healthy: {status}")
         except Exception as exc:
             st.error(f"Health check failed: {exc}")
 
