@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-import requests
 import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -13,11 +12,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 try:
     # Streamlit Cloud can run this script with `frontend/` as the working directory.
-    from frontend.client import BackendClient, InProcessBackendClient
+    from frontend.client import InProcessBackendClient
 except ModuleNotFoundError as exc:  # pragma: no cover - runtime path fallback
     if exc.name not in {"frontend", "frontend.client"}:
         raise
-    from client import BackendClient, InProcessBackendClient
+    from client import InProcessBackendClient
 
 st.set_page_config(
     page_title="AuditRAG-Finance",
@@ -27,10 +26,6 @@ st.set_page_config(
 
 
 def _init_state() -> None:
-    if "runtime_mode" not in st.session_state:
-        st.session_state.runtime_mode = "Embedded (single app)"
-    if "backend_url" not in st.session_state:
-        st.session_state.backend_url = "http://localhost:8000"
     if "document" not in st.session_state:
         st.session_state.document = None
     if "qa_history" not in st.session_state:
@@ -46,6 +41,9 @@ _init_state()
 def _get_embedded_client() -> InProcessBackendClient:
     return InProcessBackendClient()
 
+
+client = _get_embedded_client()
+
 st.title("AuditRAG-Finance")
 st.caption(
     "AI assistant for financial document understanding, "
@@ -54,20 +52,7 @@ st.caption(
 
 with st.sidebar:
     st.header("Runtime")
-    mode = st.radio(
-        "Execution Mode",
-        ["Embedded (single app)", "External FastAPI backend"],
-        index=0 if st.session_state.runtime_mode == "Embedded (single app)" else 1,
-    )
-    st.session_state.runtime_mode = mode
-
-    if mode == "External FastAPI backend":
-        backend_url = st.text_input("Backend URL", value=st.session_state.backend_url)
-        st.session_state.backend_url = backend_url
-        client = BackendClient(base_url=backend_url)
-    else:
-        st.caption("Backend is merged into Streamlit for single-service deployment.")
-        client = _get_embedded_client()
+    st.caption("Embedded single-app mode is enabled.")
 
     if st.button("Check Service Health"):
         try:
@@ -109,9 +94,6 @@ with left:
                     )
                 st.session_state.document = result
                 st.success("Document processed successfully.")
-            except requests.HTTPError as exc:
-                detail = exc.response.text if exc.response is not None else str(exc)
-                st.error(f"Upload failed: {detail}")
             except Exception as exc:
                 st.error(f"Unexpected upload error: {exc}")
 
@@ -177,9 +159,6 @@ with right:
                     st.error(str(answer.get("error")))
                 else:
                     st.session_state.qa_history.insert(0, {"question": question.strip(), "answer": answer})
-            except requests.HTTPError as exc:
-                detail = exc.response.text if exc.response is not None else str(exc)
-                st.error(f"Question failed: {detail}")
             except Exception as exc:
                 st.error(f"Unexpected question error: {exc}")
 
