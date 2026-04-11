@@ -7,7 +7,8 @@ This project is designed for practical, local-first operation with configurable 
 Repository name: `AuditRAG-Finance`
 
 ## Table of Contents
-- [What This Project Solves](#what-this-project-solves)
+- [Problem Statement](#problem-statement)
+- [Results at a Glance](#results-at-a-glance)
 - [Architecture at a Glance](#architecture-at-a-glance)
 - [Key Capabilities](#key-capabilities)
 - [Repository Structure](#repository-structure)
@@ -23,13 +24,37 @@ Repository name: `AuditRAG-Finance`
 - [Troubleshooting](#troubleshooting)
 - [Project Guides and Governance](#project-guides-and-governance)
 
-## What This Project Solves
-Financial teams frequently need to answer questions like:
-- Why was this charge deducted?
-- Is this charge suspicious or duplicated?
-- Is this a recurring payment pattern?
+## Problem Statement
+Finance operations teams often face three practical issues:
+1. Manual document review is slow and error-prone when reconciling charges, taxes, and line items.
+2. Generic chatbots may answer without document evidence, which is risky for financial decisions.
+3. Teams need traceability for audits, disputes, and compliance, not just a plain-text answer.
 
-This system ingests invoices/receipts/statements, extracts structure, indexes context, and returns grounded answers with evidence and anomaly signals.
+AuditRAG-Finance addresses this by turning uploaded invoices/receipts/statements into structured data, retrieving relevant evidence, and returning explainable answers with anomaly signals.
+
+## Results at a Glance
+When running locally, the app produces the following outcomes:
+1. Structured extraction from PDF/images: vendor, date, total, tax, currency, line items.
+2. Grounded Q&A responses: answer + evidence snippets + confidence.
+3. Risk flags for suspicious, duplicate, and recurring charge patterns.
+4. Auditability: local logs for actions, outcomes, latency, and token usage.
+5. Optional finance-only guardrails to block out-of-scope questions.
+
+Example response schema (API/logic output):
+```json
+{
+  "answer": "string",
+  "confidence": 0.0,
+  "category": "charge_explanation",
+  "evidence": ["string"],
+  "flags": ["duplicate", "suspicious"],
+  "missing_info": [],
+  "structured_data": {},
+  "anomaly": {},
+  "explainability": {},
+  "reasoning": "string"
+}
+```
 
 ## Architecture at a Glance
 1. Upload file in Streamlit.
