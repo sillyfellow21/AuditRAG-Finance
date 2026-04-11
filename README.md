@@ -33,7 +33,7 @@ This system ingests invoices/receipts/statements, extracts structure, indexes co
 
 ## Architecture at a Glance
 1. Upload file in Streamlit.
-2. FastAPI ingestion validates and stores the file.
+2. Embedded ingestion pipeline validates and stores the file.
 3. Parser extracts text from PDF/image.
 4. Extractor derives structured fields (heuristic + optional LLM assist).
 5. Chunks are embedded and indexed in Chroma.
@@ -41,7 +41,8 @@ This system ingests invoices/receipts/statements, extracts structure, indexes co
 7. Audit and observability logs are recorded.
 
 Core stack:
-- Backend: FastAPI
+- App runtime: Streamlit (embedded pipeline)
+- Optional API service: FastAPI
 - Frontend: Streamlit
 - LLM: Groq (configurable)
 - Embeddings: sentence-transformers
@@ -87,8 +88,24 @@ Top-level modules:
 For Streamlit Community Cloud deployments, this repo includes `runtime.txt` to pin Python to 3.11.
 
 ### Install
+Create and activate a virtual environment first:
+
+Windows PowerShell:
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+source .venv/bin/activate
+```
+
+Then install dependencies:
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 ### Configure
@@ -96,19 +113,21 @@ pip install -r requirements.txt
 2. Set at minimum:
    - `GROQ_API_KEY` (if you want LLM-powered responses)
 
-### Run Backend
+### Run App (Embedded, Recommended)
 ```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Run Frontend
-```bash
-streamlit run frontend/app.py
+python -m streamlit run frontend/app.py
 ```
 
 If port 8501 is occupied:
 ```bash
-streamlit run frontend/app.py --server.port 8502
+python -m streamlit run frontend/app.py --server.port 8502
+```
+
+### Optional: Run API Service Separately
+Only needed if you want to use API endpoints directly.
+
+```bash
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Configuration Reference
@@ -160,6 +179,8 @@ The following environment variables are the most operationally important.
 - `LANGSMITH_ENDPOINT`
 
 ## API Reference
+The Streamlit app runs fully in embedded mode. These endpoints are optional and available when you run the FastAPI service.
+
 ### `GET /health`
 Returns service health and environment.
 
@@ -248,7 +269,11 @@ Audit entries include:
 
 ## Evaluation
 1. Populate `evaluation/eval_dataset_template.json` with valid `document_id` values.
-2. Run:
+2. Start the API service:
+```bash
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
+3. Run evaluation:
 ```bash
 python -m evaluation.ragas_eval --backend-url http://localhost:8000
 ```
@@ -297,6 +322,11 @@ See deployment details and environment setup in this file and `.env.example`.
 
 ### Groq model errors
 - Ensure `GROQ_MODEL` is active and supported.
+
+### `uvicorn` or `streamlit` command not found
+- Use module invocation through the active virtual environment:
+  - `python -m uvicorn ...`
+  - `python -m streamlit run frontend/app.py`
 
 ### LangSmith unauthorized warnings
 - Keep tracing off or provide valid `LANGCHAIN_API_KEY`.
